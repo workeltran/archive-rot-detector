@@ -3,6 +3,7 @@
     "axios": "^1.12.2",
     "cors": "^2.8.5",
     "csv-parser": "^3.2.0",
+    "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "puppeteer": "^24.26.1",
     "puppeteer-extra": "^3.3.6",
