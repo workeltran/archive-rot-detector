@@ -4,7 +4,7 @@ const axios = require('axios');
 const fs = require('fs');
 const path = require('path'); // Required for serving the public folder
 
-// --- NEW STEALTH REQUIREMENTS ---
+// --- STEALTH REQUIREMENTS ---
 // Uses puppeteer-extra and the stealth plugin to hide from bot detection.
 const puppeteer = require('puppeteer-extra');
 const stealth = require('puppeteer-extra-plugin-stealth');
@@ -18,8 +18,7 @@ app.use(cors());
 app.use(express.json()); 
 
 // --- SERVING THE FRONTEND (MERN-style setup) ---
-// This tells Express to serve files (index.html, style.css, script.js)
-// from the public folder, which is up one level from src.
+// Serves files (index.html, style.css, etc.) from the public folder.
 app.use(express.static(path.join(__dirname, '../public')));
 // -----------------------------------------------
 
@@ -42,19 +41,6 @@ function getLinkType(url) {
   return 'Generic';
 }
 
-// --- Puppeteer Initialization (Single Instance) ---
-let browserInstance;
-
-async function getBrowser() {
-  if (!browserInstance) {
-    browserInstance = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
-  }
-  return browserInstance;
-}
-
 // --- Core Link Checking Logic ---
 async function checkLink(link, browser) {
   const type = getLinkType(link.url);
@@ -68,16 +54,15 @@ async function checkLink(link, browser) {
       type === 'YouTube Playlist' ||
       type === 'Internet Archive'
     ) {
+      // Creates a new page within the browser instance provided by the batch loop
       page = await browser.newPage();
-      // Set a robust User-Agent
       await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36');
       
       let response;
       try {
-        // Wait up to 30s for the page to fully load (networkidle2)
         response = await page.goto(link.url, { waitUntil: 'networkidle2', timeout: 30000 });
       } catch (pageError) {
-         console.error(`Navigation error for ${link.url.substring(0, 40)}...`);
+         // Console logging of errors removed to keep terminal clean during stress test
       }
 
       // Hard 404 Check
@@ -136,7 +121,7 @@ async function checkLink(link, browser) {
     }
   } finally {
     if (page) {
-      await page.close(); // Crucial to prevent memory leaks
+      await page.close(); // Crucial to prevent memory leaks from page handles
     }
   }
   
@@ -147,7 +132,7 @@ async function checkLink(link, browser) {
 app.post('/check-links', async (req, res) => {
   console.log('Received POST request to /check-links');
 
-  // Data comes from the frontend text box (req.body)
+  // The server now only uses the JSON data pasted from the frontend
   const linksToTest = req.body.links;
   if (!linksToTest || !Array.isArray(linksToTest)) {
     return res.status(400).json({ error: 'Invalid JSON. Expected a "links" array.' });
@@ -155,19 +140,35 @@ app.post('/check-links', async (req, res) => {
 
   console.log(`Loaded ${linksToTest.length} links from request body`);
   const allResults = [];
-  const browser = await getBrowser();
 
-  // BATCHING LOOP
+  // BATCHING LOOP: LAUNCHES AND CLOSES BROWSER FOR EACH BATCH (Memory Fix)
   for (let i = 0; i < linksToTest.length; i += BATCH_SIZE) {
-    const batch = linksToTest.slice(i, i + BATCH_SIZE);
-    console.log(`--- Processing batch ${Math.floor(i / BATCH_SIZE) + 1} / ${Math.ceil(linksToTest.length / BATCH_SIZE)} (links ${i + 1} to ${i + batch.length}) ---`);
-    
-    // Run the batch in parallel, but wait for the whole batch to finish
-    const batchResults = await Promise.all(
-      batch.map(link => checkLink(link, browser))
-    );
-    
-    allResults.push(...batchResults);
+    let browser; 
+    try {
+        // 1. LAUNCH THE BROWSER FOR THIS BATCH (Start consuming memory)
+        browser = await puppeteer.launch({
+            headless: true,
+            args: ['--no-sandbox', '--disable-setuid-sandbox']
+        });
+
+        const batch = linksToTest.slice(i, i + BATCH_SIZE);
+        console.log(`--- Processing batch ${Math.floor(i / BATCH_SIZE) + 1} / ${Math.ceil(linksToTest.length / BATCH_SIZE)} (links ${i + 1} to ${i + batch.length}) ---`);
+        
+        // 2. Run the batch in parallel, waiting for all 5 checks to finish.
+        const batchResults = await Promise.all(
+          batch.map(link => checkLink(link, browser))
+        );
+        
+        allResults.push(...batchResults);
+
+    } catch (e) {
+        console.error("Fatal error during batch processing:", e);
+    } finally {
+        // 3. CLOSE THE BROWSER AFTER THE BATCH (FREE UP ALL RAM!)
+        if (browser) {
+            await browser.close();
+        }
+    }
   }
 
   console.log('Link checking complete. Sending final report.');
@@ -175,20 +176,7 @@ app.post('/check-links', async (req, res) => {
   res.json({ results: allResults });
 });
 
-// --- Server Startup and Shutdown ---
+// --- Server Startup and Shutdown (No persistent browser to manage here) ---
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
-});
-
-process.on('exit', async () => {
-  if (browserInstance) {
-    await browserInstance.close();
-  }
-});
-
-process.on('SIGINT', async () => { 
-  if (browserInstance) {
-    await browserInstance.close();
-  }
-  process.exit();
 });
