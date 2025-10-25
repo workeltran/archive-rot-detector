@@ -1,0 +1,26 @@
+[
+  {
+    "id": "test_twitch_expired_1",
+    "url": "https://www.twitch.tv/videos/2500938769"
+  },
+  {
+    "id": "test_twitch_good_1",
+    "url": "https://www.twitch.tv/videos/2501784266"
+  },
+  {
+    "id": "test_youtube_good_1",
+    "url": "https://www.youtube.com/watch?v=tqHc7U7rVho"
+  },
+  {
+    "id":"test_youtube_playlist_1",
+    "url": "https://www.youtube.com/playlist?list=PLF0vWEux1SpvmzouJ7CPbUrpYpzfsStma"
+  },
+  {
+    "id": "test_youtube_404_1",
+    "url": "https://www.youtube.com/watch?v=nonexistentvid"
+  },
+  {
+    "id": "test_generic_good_1",
+    "url": "https://www.google.com"
+  }
+]

@@ -1,1 +1,8 @@
-"node_modules/" 
+# Node.js dependencies
+node_modules/
+
+# Local environment variables
+.env
+
+# Sensitive Raw Data
+*.csv
