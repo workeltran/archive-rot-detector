@@ -5,8 +5,8 @@ const csv = require('csv-parser');
 // The one, anonymized CSV file.
 const csvFile = 'data-source.csv';
 
-// Columns to check for links
-const linkColumns = ['VOD Link', 'Stream Link', 'Link'];
+// Columns to check for links - UPDATED to only check 'VOD Link'
+const linkColumns = ['VOD Link'];
 
 const allLinks = new Set();
 // Regex to split by http/https. Uses a positive lookahead (?=...)
@@ -14,11 +14,11 @@ const allLinks = new Set();
 const linkSplitRegex = /(?=https?:\/\/)/g; 
 
 async function processFile() {
-  console.log('Starting link extraction from data-source.csv...');
+  console.log('Starting link extraction from data-source.csv (VOD Link column ONLY)...');
 
   if (!fs.existsSync(csvFile)) {
     console.error(`Error: File not found: ${csvFile}`);
-    console.log('Please make sure you have renamed your July 2025 CSV to "data-source.csv" in the project root.');
+    console.log('Please make sure "data-source.csv" is in the project root.');
     return;
   }
 

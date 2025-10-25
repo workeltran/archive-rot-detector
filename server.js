@@ -43,12 +43,12 @@ app.get('/check-links', async (req, res) => {
 
   let linksToTest = [];
   try {
-    const data = fs.readFileSync('test-sample.json', 'utf8');
+    const data = fs.readFileSync('input-links.json', 'utf8');
     linksToTest = JSON.parse(data);
-    console.log(`Loaded ${linksToTest.length} links from test-sample.json`);
+    console.log(`Loaded ${linksToTest.length} links from input-links.json`);
   } catch (err) {
-    console.error('Error reading test-sample.json:', err);
-    return res.status(500).json({ error: 'Could not read test-sample.json' });
+    console.error('Error reading input-links.json:', err);
+    return res.status(500).json({ error: 'Could not read input-links.json' });
   }
 
   const results = [];
@@ -81,16 +81,19 @@ app.get('/check-links', async (req, res) => {
             throw new Error('HARD_404'); 
           }
 
-          // --- WE NOW GET BOTH HTML AND TEXT ---
+          // --- Get all our data points ---
+          const pageTitle = (await page.title()).toLowerCase();
           const bodyHTML = (await page.evaluate(() => document.body.innerHTML)).toLowerCase();
-          const bodyText = (await page.evaluate(() => document.body.innerText)).toLowerCase();
-          // ------------------------------------
+          // ------------------------------
           
           let isNotFound = false;
 
-          // --- Use the correct variable for each site ---
+          // --- Use the best check for each site ---
           if (type === 'Twitch VOD/Highlight') {
-            isNotFound = bodyText.includes("sorry. unless you've got a time machine, that content is unavailable");
+            // An expired VOD page's title is just "twitch".
+            if (pageTitle === 'twitch') {
+              isNotFound = true;
+            }
           
           } else if (type === 'YouTube Video') {
             isNotFound = bodyHTML.includes("video unavailable") || 
@@ -100,8 +103,14 @@ app.get('/check-links', async (req, res) => {
                            bodyHTML.includes("who has blocked it on copyright grounds");
           
           } else if (type === 'YouTube Playlist') {
-            isNotFound = bodyHTML.includes("the playlist does not exist") || 
-                           bodyHTML.includes("this playlist is unavailable");
+            // A dead playlist's title is just "youtube".
+            if (pageTitle === 'youtube') {
+              isNotFound = true;
+            } else {
+              // Fallback for other playlist errors
+              isNotFound = bodyHTML.includes("the playlist does not exist") || 
+                             bodyHTML.includes("this playlist is unavailable");
+            }
           
           } else if (type === 'Internet Archive') {
             isNotFound = bodyHTML.includes("this item is not available") ||
