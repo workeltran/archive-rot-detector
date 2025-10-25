@@ -1,8 +1,13 @@
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios'); 
-const puppeteer = require('puppeteer'); 
-const fs = require('fs');
+const fs =require('fs');
+
+// --- NEW STEALTH REQUIREMENTS ---
+const puppeteer = require('puppeteer-extra');
+const stealth = require('puppeteer-extra-plugin-stealth');
+puppeteer.use(stealth());
+// ------------------------------
 
 const app = express();
 const PORT = 3000;
@@ -10,10 +15,8 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
-// --- THIS IS OUR NEW BATCH SIZE ---
-// We will only run 10 checks at a time.
-const BATCH_SIZE = 10;
-// ---------------------------------
+// We'll be safer and only run 5 at a time
+const BATCH_SIZE = 5;
 
 function getLinkType(url) {
   if (url.includes('youtube.com/playlist') || url.includes('youtube.com/playlist')) {
@@ -43,7 +46,6 @@ async function getBrowser() {
   return browserInstance;
 }
 
-// --- I've moved the logic into its own function ---
 async function checkLink(link, browser) {
   const type = getLinkType(link.url);
   const result = { id: link.id, url: link.url, type: type, status: 'PENDING' };
@@ -61,9 +63,9 @@ async function checkLink(link, browser) {
       
       let response;
       try {
-        response = await page.goto(link.url, { waitUntil: 'networkidle2', timeout: 10000 });
+        // --- INCREASED TIMEOUT ---
+        response = await page.goto(link.url, { waitUntil: 'networkidle2', timeout: 30000 });
       } catch (pageError) {
-         // This is the error you saw in the console. It's now expected.
          console.error(`Navigation error for ${link.url.substring(0, 40)}...`);
       }
 
@@ -110,7 +112,7 @@ async function checkLink(link, browser) {
     if (error.message === 'HARD_404' || (error.response && (error.response.status === 404 || error.response.status === 410))) {
       result.status = 'NOT_FOUND';
     } else if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-      result.status = 'TIMEOUT'; // This is now an expected status, not an error
+      result.status = 'TIMEOUT'; 
     } else {
       result.status = 'ERROR';
     }
@@ -122,14 +124,12 @@ async function checkLink(link, browser) {
   
   return result;
 }
-// ------------------------------------------
 
 app.get('/check-links', async (req, res) => {
-  console.log('Received request to /check-links with Puppeteer (BATCHED)');
+  console.log('Received request to /check-links with STEALTH Puppeteer (BATCHED)');
 
   let linksToTest = [];
   try {
-    // Make sure this is reading 'input-links.json'
     const data = fs.readFileSync('input-links.json', 'utf8');
     linksToTest = JSON.parse(data);
     console.log(`Loaded ${linksToTest.length} links from input-links.json`);
@@ -141,7 +141,6 @@ app.get('/check-links', async (req, res) => {
   const allResults = [];
   const browser = await getBrowser();
 
-  // --- THIS IS THE NEW BATCHING LOOP ---
   for (let i = 0; i < linksToTest.length; i += BATCH_SIZE) {
     const batch = linksToTest.slice(i, i + BATCH_SIZE);
     console.log(`--- Processing batch ${Math.floor(i / BATCH_SIZE) + 1} / ${Math.ceil(linksToTest.length / BATCH_SIZE)} (links ${i + 1} to ${i + batch.length}) ---`);
@@ -152,7 +151,6 @@ app.get('/check-links', async (req, res) => {
     
     allResults.push(...batchResults);
   }
-  // -------------------------------------
 
   console.log('Link checking complete.');
   allResults.sort((a, b) => a.id.localeCompare(b.id));
@@ -163,11 +161,13 @@ app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
 
+// --- THIS IS THE CORRECTED FUNCTION ---
 process.on('exit', async () => {
   if (browserInstance) {
     await browserInstance.close();
   }
 });
+// ------------------------------------
 
 process.on('SIGINT', async () => { 
   if (browserInstance) {
