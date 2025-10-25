@@ -9,28 +9,26 @@
 <body>
     <div class="container">
         <h1>Archive Link Rot Detector 🤖</h1>
-        <p>Upload a .txt or .csv file with a list of URLs to validate.</p>
+        <p>Paste your JSON link array below to validate links.</p>
         
-        <div class="card" id="upload-box">
-            <p>Drag & Drop Your File Here</p>
-            <p>(or click to select)</p>
-            <button class="btn">Upload File</button>
+        <div class="card">
+            <textarea id="json-input" rows="10" placeholder="[&#10;  { &quot;id&quot;: &quot;link_1&quot;, &quot;url&quot;: &quot;https...&quot; },&#10;  { &quot;id&quot;: &quot;link_2&quot;, &quot;url&quot;: &quot;https...&quot; }&#10;]"></textarea>
+            <button class="btn" id="check-btn">Check Links</button>
         </div>
 
         <h2>Results</h2>
-        <p>Here's the report for <strong>data-source.csv</strong> (521 links):</p>
         
         <div class="card" id="results-box">
-            <div class="chart-container">
-                <img src="https://i.imgur.com/g0Q9B0h.png" alt="Pie chart showing 400 found, 100 not found, and 21 errors">
-            </div>
-            <div class="stats">
-                <p><span class="dot green"></span><strong>400</strong> FOUND</p>
-                <p><span class="dot red"></span><strong>100</strong> NOT_FOUND</p>
-                <p><span class="dot yellow"></span><strong>21</strong> ERROR / TIMEOUT</p>
-                <button class="btn">Download Full Report (.json)</button>
-            </div>
+            <p>Your results will appear here...</p>
+        </div>
+
+        <h2>Full Stress Test Report</h2>
+        <div class="card">
+            <p>View the full 521-link report (from our stress test):</p>
+            <a href="report-final.json" class="btn">Download report-final.json</a>
         </div>
     </div>
+
+    <script src="script.js"></script>
 </body>
 </html>

@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const axios = require('axios'); 
 const fs =require('fs');
+const path = require('path'); // We need 'path' to serve the public folder
 
 // --- NEW STEALTH REQUIREMENTS ---
 const puppeteer = require('puppeteer-extra');
@@ -13,11 +14,17 @@ const app = express();
 const PORT = 3000;
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json()); // This is crucial for parsing the pasted JSON
 
-// We'll be safer and only run 5 at a time
+// --- NEW: SERVE YOUR FRONTEND ---
+// This tells Express to serve your index.html and style.css
+app.use(express.static(path.join(__dirname, '../public')));
+// ---------------------------------
+
 const BATCH_SIZE = 5;
 
+// ... (The getLinkType, getBrowser, and checkLink functions are all UNCHANGED) ...
+// (I'm hiding them here for brevity, but leave them in your file)
 function getLinkType(url) {
   if (url.includes('youtube.com/playlist') || url.includes('youtube.com/playlist')) {
     return 'YouTube Playlist';
@@ -63,7 +70,6 @@ async function checkLink(link, browser) {
       
       let response;
       try {
-        // --- INCREASED TIMEOUT ---
         response = await page.goto(link.url, { waitUntil: 'networkidle2', timeout: 30000 });
       } catch (pageError) {
          console.error(`Navigation error for ${link.url.substring(0, 40)}...`);
@@ -125,25 +131,26 @@ async function checkLink(link, browser) {
   return result;
 }
 
-app.get('/check-links', async (req, res) => {
-  console.log('Received request to /check-links with STEALTH Puppeteer (BATCHED)');
 
-  let linksToTest = [];
-  try {
-    const data = fs.readFileSync('test-sample.json', 'utf8');
-    linksToTest = JSON.parse(data);
-    console.log(`Loaded ${linksToTest.length} links from test-sample.json`);
-  } catch (err) {
-    console.error('Error reading test-sample.json:', err);
-    return res.status(500).json({ error: 'Could not read test-sample.json' });
+// --- THIS IS THE UPDATED ENDPOINT ---
+// It's now app.post() and reads from req.body
+app.post('/check-links', async (req, res) => {
+  console.log('Received POST request to /check-links');
+
+  // Get the links from the pasted JSON
+  const linksToTest = req.body.links;
+  if (!linksToTest || !Array.isArray(linksToTest)) {
+    return res.status(400).json({ error: 'Invalid JSON. Expected a "links" array.' });
   }
 
+  console.log(`Loaded ${linksToTest.length} links from request body`);
   const allResults = [];
   const browser = await getBrowser();
 
+  // The batching loop is unchanged
   for (let i = 0; i < linksToTest.length; i += BATCH_SIZE) {
     const batch = linksToTest.slice(i, i + BATCH_SIZE);
-    console.log(`--- Processing batch ${Math.floor(i / BATCH_SIZE) + 1} / ${Math.ceil(linksToTest.length / BATCH_SIZE)} (links ${i + 1} to ${i + batch.length}) ---`);
+    console.log(`--- Processing batch ${Math.floor(i / BATCH_SIZE) + 1} / ${Math.ceil(linksToTest.length / BATCH_SIZE)} ---`);
     
     const batchResults = await Promise.all(
       batch.map(link => checkLink(link, browser))
@@ -156,18 +163,17 @@ app.get('/check-links', async (req, res) => {
   allResults.sort((a, b) => a.id.localeCompare(b.id));
   res.json({ results: allResults });
 });
+// -------------------------------------
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
 
-// --- THIS IS THE CORRECTED FUNCTION ---
 process.on('exit', async () => {
   if (browserInstance) {
     await browserInstance.close();
   }
 });
-// ------------------------------------
 
 process.on('SIGINT', async () => { 
   if (browserInstance) {
