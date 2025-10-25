@@ -54,18 +54,17 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             // --------------------------------
 
-            // --- UPDATED DISPLAY LOGIC ---
+            // --- UPDATED DISPLAY LOGIC WITH &nbsp; ---
             resultsBox.innerHTML = `
                 <h3>Check Complete!</h3>
                 <div class="stats">
-                    <p><span class="dot green"></span><strong>${found}</strong> FOUND</p>
-                    <p><span class="dot red"></span><strong>${notFound}</strong> NOT_FOUND</p>
-                    <p><span class="dot orange"></span><strong>${timeout}</strong> TIMEOUT</p> 
-                    <p><span class="dot yellow"></span><strong>${error}</strong> ERROR</p>
+                    <p><span class="dot green"></span><strong>${found}</strong>&nbsp;FOUND</p>
+                    <p><span class="dot red"></span><strong>${notFound}</strong>&nbsp;NOT_FOUND</p>
+                    <p><span class="dot orange"></span><strong>${timeout}</strong>&nbsp;TIMEOUT</p> 
+                    <p><span class="dot yellow"></span><strong>${error}</strong>&nbsp;ERROR</p>
                 </div>
                 <p><small>Full JSON report logged to browser console.</small></p>
             `;
-            // -----------------------------
             console.log(report); 
 
         } catch (err) {
