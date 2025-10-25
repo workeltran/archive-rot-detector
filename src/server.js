@@ -130,12 +130,12 @@ app.get('/check-links', async (req, res) => {
 
   let linksToTest = [];
   try {
-    const data = fs.readFileSync('input-links.json', 'utf8');
+    const data = fs.readFileSync('test-sample.json', 'utf8');
     linksToTest = JSON.parse(data);
-    console.log(`Loaded ${linksToTest.length} links from input-links.json`);
+    console.log(`Loaded ${linksToTest.length} links from test-sample.json`);
   } catch (err) {
-    console.error('Error reading input-links.json:', err);
-    return res.status(500).json({ error: 'Could not read input-links.json' });
+    console.error('Error reading test-sample.json:', err);
+    return res.status(500).json({ error: 'Could not read test-sample.json' });
   }
 
   const allResults = [];
