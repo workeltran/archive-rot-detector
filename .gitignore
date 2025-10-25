@@ -9,4 +9,4 @@ node_modules/
 
 # Ignore large generated data/report files
 input-links.json
-report-final.json
+report-file.json
