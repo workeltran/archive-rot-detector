@@ -6,3 +6,7 @@ node_modules/
 
 # Sensitive Raw Data
 *.csv
+
+# Ignore large generated data/report files
+input-links.json
+report-final.json
