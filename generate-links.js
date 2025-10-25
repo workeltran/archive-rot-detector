@@ -2,8 +2,9 @@ const fs = require('fs');
 const path = require('path');
 const csv = require('csv-parser');
 
-// The one, anonymized CSV file.
-const csvFile = 'data-source.csv';
+// The one, anonymized CSV file
+const csvFile = './data/data-source.csv';
+
 
 // Columns to check for links - UPDATED to only check 'VOD Link'
 const linkColumns = ['VOD Link'];

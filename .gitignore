@@ -1,12 +1,9 @@
 # Node.js dependencies
 node_modules/
+/public/report-file.json
 
 # Local environment variables
 .env
 
-# Sensitive Raw Data
-*.csv
-
-# Ignore large generated data/report files
-input-links.json
-report-file.json
+# Ignore ALL contents of the data folder
+data/

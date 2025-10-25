@@ -29,7 +29,6 @@ h1, h2 {
     border: 1px solid #444;
 }
 
-/* New styles for the textarea */
 #json-input {
     width: 95%;
     background-color: #1e1e1e;
@@ -51,6 +50,18 @@ h1, h2 {
     font-weight: bold;
     cursor: pointer;
     margin-top: 15px;
+    margin-right: 10px; /* New: Space between buttons */
+}
+
+.btn-secondary {
+    background-color: #555;
+    color: white;
+    border: 1px solid #777;
+    font-weight: normal;
+}
+
+.btn-secondary:hover {
+    background-color: #666;
 }
 
 .btn:hover:not(:disabled) {
@@ -68,10 +79,6 @@ a.btn {
 }
 
 /* Results section */
-#results-box {
-    display: block; /* Changed from flex */
-}
-
 .stats p {
     font-size: 1.2rem;
     display: flex;
@@ -90,17 +97,29 @@ a.btn {
 .dot.yellow { background-color: #ffc107; }
 .dot.orange { background-color: #fd7e14; }
 
-/* Add a simple loader animation */
+/* JSON Preformatted Output */
+#full-report {
+    background-color: #1a1a1a;
+    border: 1px solid #444;
+    padding: 15px;
+    border-radius: 5px;
+    overflow-x: auto;
+    white-space: pre-wrap; /* Allows wrapping for long lines */
+    word-break: break-all;
+    font-size: 0.9rem;
+    max-height: 400px; /* Keeps the page from getting too long */
+}
+
+/* Loader Animation */
 .loader {
-    border: 4px solid #f3f3f3; /* Light grey */
-    border-top: 4px solid #0d6efd; /* Blue */
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #0d6efd;
     border-radius: 50%;
     width: 20px;
     height: 20px;
     animation: spin 1s linear infinite;
-    margin: 10px auto; /* Center the loader */
+    margin: 10px auto;
 }
-
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }

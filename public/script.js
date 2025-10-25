@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // 2. Show a loading message
-        resultsBox.innerHTML = `<p>Checking ${linksArray.length} links... This may take a moment.</p><div class="loader"></div>`; // Added a simple loader
+        resultsBox.innerHTML = `<p>Checking ${linksArray.length} links... This may take a moment.</p><div class="loader"></div>`;
         checkButton.disabled = true;
 
         // 3. Send the data to our server
@@ -39,33 +39,61 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const report = await response.json();
-            
-            // --- UPDATED COUNTING LOGIC ---
+            const fullJsonOutput = JSON.stringify(report.results, null, 2);
+
+            // 4. Count the results
             let found = 0;
             let notFound = 0;
-            let timeout = 0; // New counter
-            let error = 0;   // New counter
+            let timeout = 0;
+            let error = 0;
 
             report.results.forEach(item => {
                 if (item.status === 'FOUND') found++;
                 else if (item.status === 'NOT_FOUND') notFound++;
-                else if (item.status === 'TIMEOUT') timeout++; // Count timeouts separately
-                else error++; // All others are errors
+                else if (item.status === 'TIMEOUT') timeout++;
+                else error++;
             });
-            // --------------------------------
 
-            // --- UPDATED DISPLAY LOGIC WITH &nbsp; ---
+            // 5. Display the Summary and Detail elements
             resultsBox.innerHTML = `
                 <h3>Check Complete!</h3>
-                <div class="stats">
+                <div class="stats-summary">
                     <p><span class="dot green"></span><strong>${found}</strong>&nbsp;FOUND</p>
                     <p><span class="dot red"></span><strong>${notFound}</strong>&nbsp;NOT_FOUND</p>
                     <p><span class="dot orange"></span><strong>${timeout}</strong>&nbsp;TIMEOUT</p> 
                     <p><span class="dot yellow"></span><strong>${error}</strong>&nbsp;ERROR</p>
                 </div>
-                <p><small>Full JSON report logged to browser console.</small></p>
+                
+                <div class="detail-actions" style="margin-top: 20px;">
+                    <button class="btn btn-secondary" id="toggle-details">Show Full Report (${linksArray.length} items)</button>
+                    <button class="btn btn-secondary" id="download-report">Download JSON</button>
+                </div>
+
+                <pre id="full-report" style="display: none;">${fullJsonOutput}</pre>
             `;
-            console.log(report); 
+            
+            // 6. Add event listeners for the new buttons
+            const toggleButton = document.getElementById('toggle-details');
+            const fullReport = document.getElementById('full-report');
+            const downloadButton = document.getElementById('download-report');
+            
+            toggleButton.addEventListener('click', () => {
+                const isHidden = fullReport.style.display === 'none';
+                fullReport.style.display = isHidden ? 'block' : 'none';
+                toggleButton.textContent = isHidden ? 'Hide Full Report' : 'Show Full Report';
+            });
+            
+            downloadButton.addEventListener('click', () => {
+                const blob = new Blob([fullJsonOutput], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'link_rot_report.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
 
         } catch (err) {
             resultsBox.innerHTML = `<p style="color: red;"><strong>Error:</strong> ${err.message}</p>`;
