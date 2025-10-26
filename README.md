@@ -11,13 +11,13 @@ To run the functional frontend demonstration, you will first need to set up the 
 
 - **Prerequisites:** you must have Node.js installed on your system. This also installs npm (Node Package Manager).
 - **Clone the Repository:** clone the project and change into the directory using the following commands:
-- ```git clone https://github.com/your-username/your-repo-name.git```
-  - cd your-repo-name
-- **Install Dependencies:** run npm install to download all necessary packages, including Express, Axios, and Puppeteer. (This may take a minute as it also downloads a local copy of Chromium for Puppeteer.)
-  - npm install
-- **Run the Server:** Start the API server on the final, configured port by running node src/server.js. The server will run on http://localhost:8000. (I chose port 8000 bc my usual 8080 port is already taken by a different app.)
-  - node src/server.js
-- **Use the Frontend:** Open your browser to http://localhost:8000. You can then copy the JSON array from the test-early-diverse-sample.json file in the project folder, paste the list into the text area, and click "Check Links" to see a live, accurate report.
+  - ```git clone https://github.com/your-username/your-repo-name.git```
+  - ```cd your-repo-name```
+- **Install Dependencies:** run ```npm install``` to download all necessary packages, including Express, Axios, and Puppeteer. (This may take a minute as it also downloads a local copy of Chromium for Puppeteer.)
+  - ```npm install```
+- **Run the Server:** Start the API server on the final, configured port by running ```node src/server.js```. The server will run on ```http://localhost:8000```. (I chose port 8000 bc my usual 8080 port is already taken by a different app.)
+  - ```node src/server.js```
+- **Use the Frontend:** Open your browser to ```http://localhost:8000```. You can then copy the JSON array from the test-early-diverse-sample.json file in the project folder, paste the list into the text area, and click "Check Links" to see a live, accurate report.
 
 # What's Next
 The current tool is the most stable and accurate scraping solution possible for a live environment. However, the future goal is to eliminate scraping entirely. The immediate next step is to upgrade the core logic by switching from Puppeteer to the fast, stable Twitch Helix API and YouTube Data API. We will also implement a retry queue with exponential backoff to automatically re-check links that return a TIMEOUT status, ensuring a 100% data fidelity on the final report.
