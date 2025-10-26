@@ -9,8 +9,8 @@ This project was built to overcome complex web scraping and system resource limi
 ## Getting Started (Run the Demo)
 To run the functional frontend demonstration, you will first need to set up the dependencies and start the server.
 
-- **Prerequisites:** you must have Node.js installed on your system. This also installs npm (Node Package Manager).
-- **Clone the Repository:** clone the project and change into the directory using the following commands:
+* **Prerequisites:** you must have Node.js installed on your system. This also installs npm (Node Package Manager).
+* **Clone the Repository:** clone the project and change into the directory using the following commands:
 ** ```git clone https://github.com/your-username/your-repo-name.git```
 -- cd your-repo-name
 - **Install Dependencies:** run npm install to download all necessary packages, including Express, Axios, and Puppeteer. (This may take a minute as it also downloads a local copy of Chromium for Puppeteer.)
