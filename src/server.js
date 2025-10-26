@@ -39,28 +39,41 @@ function getLinkType(url) {
 
 // checks links
 async function checkLink(link, browser) {
+  // link type
   const type = getLinkType(link.url);
+
+  // result object to return
   const result = { id: link.id, url: link.url, type: type, status: 'PENDING' };
+  
+  // Puppeteer page instance
   let page; 
 
+  // error handling when reading pages
   try {
+    // check platforms
     if (
       type === 'Twitch VOD/Highlight' ||
       type === 'YouTube Video' ||
       type === 'YouTube Playlist' ||
       type === 'Internet Archive'
     ) {
+      // open new page
       page = await browser.newPage();
+
+      // make user agent into a Chrome browser
       await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36');
       
+      // server response
       let response;
+
+      // navigate to page
       try {
         response = await page.goto(link.url, { waitUntil: 'networkidle2', timeout: 30000 });
       } catch (pageError) {
         throw pageError;
       }
 
-      // Hard 404 Check
+      // hard 404 Check
       if (response && (response.status() === 404 || response.status() === 410)) {
         throw new Error('HARD_404'); 
       }
@@ -69,6 +82,7 @@ async function checkLink(link, browser) {
       const pageTitle = (await page.title()).toLowerCase();
       const bodyHTML = (await page.evaluate(() => document.body.innerHTML)).toLowerCase();
       
+      // flag for not found
       let isNotFound = false;
 
       // check Twitch links
@@ -77,7 +91,7 @@ async function checkLink(link, browser) {
       
       } // check YouTube links
        else if (type === 'YouTube Video') {
-        // This is the ultimate list of strings we know exist for dead content
+        // the ultimate list of strings we know exist for dead content
         isNotFound = (pageTitle === 'youtube') || // generic 404
                        bodyHTML.includes("video unavailable") || // generic unavailability
                        bodyHTML.includes("this video isn't available anymore") || // deletion
@@ -134,15 +148,19 @@ async function checkLink(link, browser) {
   return result;
 }
 
-//  main API endpoint
+// main API endpoint
 app.post('/check-links', async (req, res) => {
   console.log('Received POST request to /check-links');
 
+  // reads the given json file
   const linksToTest = req.body.links;
+
+  // wrong format
   if (!linksToTest || !Array.isArray(linksToTest)) {
     return res.status(400).json({ error: 'Invalid JSON. Expected a "links" array.' });
   }
 
+  // links loaded
   console.log(`Loaded ${linksToTest.length} links from request body`);
   const allResults = [];
 
@@ -150,23 +168,33 @@ app.post('/check-links', async (req, res) => {
   for (let i = 0; i < linksToTest.length; i += BATCH_SIZE) {
     let browser; 
     try {
+
+        // new, clean browser instance for this specific batch
         browser = await puppeteer.launch({
             headless: true,
             args: ['--no-sandbox', '--disable-setuid-sandbox']
         });
 
+        // next chunk of links from the main array
         const batch = linksToTest.slice(i, i + BATCH_SIZE);
         console.log(`--- Processing batch ${Math.floor(i / BATCH_SIZE) + 1} / ${Math.ceil(linksToTest.length / BATCH_SIZE)} (links ${i + 1} to ${i + batch.length}) ---`);
         
+
+        // run 'checkLink' function for all links in this batch
         const batchResults = await Promise.all(
           batch.map(link => checkLink(link, browser))
         );
-        
+
+        // add results to final array
         allResults.push(...batchResults);
 
+    // unexpected error
     } catch (e) {
         console.error("Fatal error during batch processing:", e);
-    } finally {
+    } 
+
+    // close to prevent memory leaks
+    finally {
         if (browser) {
             await browser.close();
         }
