@@ -17,7 +17,7 @@ To run the functional frontend demonstration, you will first need to set up the 
   - ```npm install```
 - **Run the Server:** Start the API server on the final, configured port by running ```node src/server.js```. The server will run on ```http://localhost:8000```. (I chose port 8000 bc my usual 8080 port is already taken by a different app. If you need to change the port number, find line 14 in ```server.js``` for the port declaration.)
   - ```node src/server.js```
-- **Use the Frontend:** Open your browser to ```http://localhost:8000```. You can then copy the JSON array from the test-early-diverse-sample.json file in the project folder, paste the list into the text area, and click "Check Links" to see a live, accurate report.
+- **Use the Frontend:** Open your browser to ```http://localhost:8000``` (if you changed the port name here, the 8000 will be replaced by your port number instead). You can then copy the JSON array from the test-early-diverse-sample.json file in the project folder, paste the list into the text area, and click "Check Links" to see a live, accurate report.
 
 # What's Next
 The current tool is the most stable and accurate scraping solution possible for a live environment. However, in the future, scraping should be eliminated entirely. Upgrade the core logic by switching from Puppeteer to the fast, stable Twitch Helix API and YouTube Data API will solve this issue. Another possible feature is a retry queue with exponential backoff to automatically re-check links that return a ```TIMEOUT``` status, ensuring full data fidelity on the final report.
