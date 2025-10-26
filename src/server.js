@@ -2,27 +2,23 @@ const express = require('express');
 const cors = require('cors');
 const axios = require('axios'); 
 const fs = require('fs');
-const path = require('path'); // Required for serving the public folder
+const path = require('path'); 
 
 // --- STEALTH REQUIREMENTS ---
-// Uses puppeteer-extra and the stealth plugin to hide from bot detection.
 const puppeteer = require('puppeteer-extra');
 const stealth = require('puppeteer-extra-plugin-stealth');
 puppeteer.use(stealth());
 // ------------------------------
 
 const app = express();
-const PORT = 8000;
+const PORT = 8000; 
 
 app.use(cors());
 app.use(express.json()); 
 
-// --- SERVING THE FRONTEND (MERN-style setup) ---
-// Serves files (index.html, style.css, etc.) from the public folder.
 app.use(express.static(path.join(__dirname, '../public')));
-// -----------------------------------------------
 
-const BATCH_SIZE = 5; // Stable batch size for live checks
+const BATCH_SIZE = 5; 
 
 // --- Link Type Classification ---
 function getLinkType(url) {
@@ -54,7 +50,6 @@ async function checkLink(link, browser) {
       type === 'YouTube Playlist' ||
       type === 'Internet Archive'
     ) {
-      // Creates a new page within the browser instance provided by the batch loop
       page = await browser.newPage();
       await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36');
       
@@ -62,7 +57,7 @@ async function checkLink(link, browser) {
       try {
         response = await page.goto(link.url, { waitUntil: 'networkidle2', timeout: 30000 });
       } catch (pageError) {
-         // Console logging of errors removed to keep terminal clean during stress test
+         // Ignore navigation errors here, rely on later checks
       }
 
       // Hard 404 Check
@@ -70,7 +65,6 @@ async function checkLink(link, browser) {
         throw new Error('HARD_404'); 
       }
 
-      // Get page title and raw HTML for soft 404 checks
       const pageTitle = (await page.title()).toLowerCase();
       const bodyHTML = (await page.evaluate(() => document.body.innerHTML)).toLowerCase();
       
@@ -80,15 +74,19 @@ async function checkLink(link, browser) {
       if (type === 'Twitch VOD/Highlight') {
         if (pageTitle === 'twitch') isNotFound = true;
       
-      // YouTube Video Checks (Multiple error strings)
-      } else if (type === 'YouTube Video') {
-        isNotFound = bodyHTML.includes("video unavailable") || 
-                       bodyHTML.includes("this video isn't available anymore") ||
-                       bodyHTML.includes("this video is private") ||
-                       bodyHTML.includes("this video is unavailable in your country") ||
-                       bodyHTML.includes("who has blocked it on copyright grounds");
+      } // YOUTUBE VIDEO CHECKS (FINAL, AGGRESSIVE STRING CHECK)
+       else if (type === 'YouTube Video') {
+        // This is the ultimate list of strings we know exist for dead content
+        isNotFound = (pageTitle === 'youtube') || // <-- ADD THIS LINE
+                       bodyHTML.includes("video unavailable") || // Generic unavailability
+                       bodyHTML.includes("this video isn't available anymore") || // Deletion
+                       bodyHTML.includes("this video is private") || // Privacy
+                       bodyHTML.includes("this video is unavailable in your country") || // Geoblock
+                       bodyHTML.includes("who has blocked it on copyright grounds") || // Copyright block
+                       bodyHTML.includes("has been removed by the user") || // User removal
+                       bodyHTML.includes("account associated with this video has been terminated"); // Channel termination
       
-      // YouTube Playlist Checks (Title-based and error strings)
+      // YouTube Playlist Checks
       } else if (type === 'YouTube Playlist') {
         if (pageTitle === 'youtube') {
           isNotFound = true;
@@ -121,7 +119,7 @@ async function checkLink(link, browser) {
     }
   } finally {
     if (page) {
-      await page.close(); // Crucial to prevent memory leaks from page handles
+      await page.close(); 
     }
   }
   
@@ -132,7 +130,6 @@ async function checkLink(link, browser) {
 app.post('/check-links', async (req, res) => {
   console.log('Received POST request to /check-links');
 
-  // The server now only uses the JSON data pasted from the frontend
   const linksToTest = req.body.links;
   if (!linksToTest || !Array.isArray(linksToTest)) {
     return res.status(400).json({ error: 'Invalid JSON. Expected a "links" array.' });
@@ -141,11 +138,10 @@ app.post('/check-links', async (req, res) => {
   console.log(`Loaded ${linksToTest.length} links from request body`);
   const allResults = [];
 
-  // BATCHING LOOP: LAUNCHES AND CLOSES BROWSER FOR EACH BATCH (Memory Fix)
+  // BATCHING LOOP: LAUNCHES AND CLOSES BROWSER FOR EACH BATCH (RAM FIX)
   for (let i = 0; i < linksToTest.length; i += BATCH_SIZE) {
     let browser; 
     try {
-        // 1. LAUNCH THE BROWSER FOR THIS BATCH (Start consuming memory)
         browser = await puppeteer.launch({
             headless: true,
             args: ['--no-sandbox', '--disable-setuid-sandbox']
@@ -154,7 +150,6 @@ app.post('/check-links', async (req, res) => {
         const batch = linksToTest.slice(i, i + BATCH_SIZE);
         console.log(`--- Processing batch ${Math.floor(i / BATCH_SIZE) + 1} / ${Math.ceil(linksToTest.length / BATCH_SIZE)} (links ${i + 1} to ${i + batch.length}) ---`);
         
-        // 2. Run the batch in parallel, waiting for all 5 checks to finish.
         const batchResults = await Promise.all(
           batch.map(link => checkLink(link, browser))
         );
@@ -164,7 +159,6 @@ app.post('/check-links', async (req, res) => {
     } catch (e) {
         console.error("Fatal error during batch processing:", e);
     } finally {
-        // 3. CLOSE THE BROWSER AFTER THE BATCH (FREE UP ALL RAM!)
         if (browser) {
             await browser.close();
         }
@@ -176,7 +170,7 @@ app.post('/check-links', async (req, res) => {
   res.json({ results: allResults });
 });
 
-// --- Server Startup and Shutdown (No persistent browser to manage here) ---
+// --- Server Startup ---
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
