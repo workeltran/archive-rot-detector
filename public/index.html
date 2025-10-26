@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- head HTML to include meta tags, title, and link to CSS -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Archive Link Rot Detector</title>
@@ -8,20 +9,24 @@
 </head>
 <body>
     <div class="container">
+        <!-- top -->
         <h1>Archive Link Rot Detector 🤖</h1>
         <p>Paste your JSON link array below to validate links.</p>
         
+        <!-- input area -->
         <div class="card">
             <textarea id="json-input" rows="10" placeholder="[&#10;  { &quot;id&quot;: &quot;link_1&quot;, &quot;url&quot;: &quot;https...&quot; },&#10;  { &quot;id&quot;: &quot;link_2&quot;, &quot;url&quot;: &quot;https...&quot; }&#10;]"></textarea>
             <button class="btn" id="check-btn">Check Links</button>
         </div>
 
+        <!-- results area -->
         <h2>Results</h2>
         
         <div class="card" id="results-box">
             <p>Your results will appear here...</p>
         </div>
 
+        <!-- full report download from the month-long stress test (500+ links)-->
         <h2>Full Stress Test Report</h2>
         <div class="card">
             <p>View the results from the full 521-link stress test:</p>

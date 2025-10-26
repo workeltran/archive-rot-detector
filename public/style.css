@@ -1,20 +1,14 @@
-/*
- * Final Accessible Ocean/Forest Motif CSS
- * The colors are chosen for high contrast (WCAG AA compliant).
- */
-
+/* body and general styles */
 body {
-    /* Main Body BG: Deep Forest Green (Darker for contrast) */
     background-color: #00332e; 
-    /* Lighter text for better contrast */
     color: #f0f0f0; 
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     margin: 0;
     padding: 20px;
 }
 
+/* element containers */
 .container {
-    /* Container BG: Ocean Depths Blue (Darker for contrast) */
     background-color: #011e30; 
     max-width: 800px;
     margin: 0 auto;
@@ -23,30 +17,27 @@ body {
     border: 1px solid #1a1a1a;
 }
 
+/* headers */
 h1, h2 {
     color: #ffffff;
-    /* Use the main accent color as a separator */
     border-bottom: 2px solid #00b8d4; 
     padding-bottom: 10px;
 }
 
+/* cards */
 .card {
-    /* Card BG: Dark Teal/Moss */
     background-color: #005054; 
     border-radius: 8px;
     padding: 24px;
     margin-bottom: 20px;
-    /* Subtle accent border */
     border: 1px solid #00b8d4; 
 }
 
-/* INPUT & TEXT AREA */
+/* input and text areas */
 #json-input {
     width: 95%;
-    /* Use body BG for max contrast with card */
     background-color: #00332e; 
     color: #f0f0f0;
-    /* Accent border */
     border: 1px solid #00b8d4;
     border-radius: 5px;
     padding: 10px;
@@ -54,11 +45,9 @@ h1, h2 {
     font-size: 14px;
 }
 
-/* BUTTONS */
+/* buttons */
 .btn {
-    /* Primary Button Color: Vibrant Ocean/Aqua */
     background-color: #00b8d4; 
-    /* BLACK text on bright button for max contrast */
     color: #000000; 
     border: none;
     padding: 12px 20px;
@@ -71,8 +60,8 @@ h1, h2 {
     transition: background-color 0.2s;
 }
 
+/* disabled buttons */
 .btn:hover:not(:disabled) {
-    /* Button Hover Color: Slightly Darker Aqua */
     background-color: #0097a7; 
 }
 
@@ -81,7 +70,7 @@ h1, h2 {
     cursor: not-allowed;
 }
 
-/* SECONDARY BUTTONS (Detail/Download) */
+/* details and download buttons */
 .btn-secondary {
     background-color: #404040;
     color: white;
@@ -98,7 +87,7 @@ a.btn {
     display: inline-block;
 }
 
-/* RESULTS & STATS */
+/* results */
 .stats p {
     font-size: 1.2rem;
     display: flex;
@@ -106,7 +95,7 @@ a.btn {
     margin: 5px 0;
 }
 
-/* Status Dots */
+/* status dots */
 .dot {
     height: 15px;
     width: 15px;
@@ -114,15 +103,17 @@ a.btn {
     margin-right: 10px;
     display: inline-block;
 }
-.dot.green { background-color: #28a745; }   /* FOUND */
-.dot.red { background-color: #dc3545; }     /* NOT_FOUND */
-.dot.yellow { background-color: #ffc107; }  /* ERROR */
-.dot.orange { background-color: #fd7e14; }  /* TIMEOUT */
 
-/* JSON Preformatted Output */
+/* status dot colors (green is found, red is not found, orange is timeout, yellow is other error */
+.dot.green { background-color: #28a745; }   
+.dot.red { background-color: #dc3545; }     
+.dot.yellow { background-color: #ffc107; } 
+.dot.orange { background-color: #fd7e14; }  
+
+/* full report output */
 #full-report {
-    background-color: #00332e; /* Matches body background */
-    border: 1px solid #00b8d4; /* Uses accent color */
+    background-color: #00332e;
+    border: 1px solid #00b8d4;
     padding: 15px;
     border-radius: 5px;
     overflow-x: auto;
@@ -133,10 +124,10 @@ a.btn {
     margin-top: 15px;
 }
 
-/* Loader Animation */
+/* loader animation */
 .loader {
     border: 4px solid #f3f3f3;
-    border-top: 4px solid #00b8d4; /* Uses accent color */
+    border-top: 4px solid #00b8d4;
     border-radius: 50%;
     width: 20px;
     height: 20px;

@@ -1,15 +1,16 @@
-// Wait for the page to load
+// wait for the page to load
 document.addEventListener('DOMContentLoaded', () => {
     
+    // DOM elements
     const checkButton = document.getElementById('check-btn');
     const jsonInput = document.getElementById('json-input');
     const resultsBox = document.getElementById('results-box');
 
-    // Add a click listener to the button
+    // click listener for the check button
     checkButton.addEventListener('click', async () => {
         let linksArray;
 
-        // 1. Parse the text from the textarea
+        // parse text from text area
         try {
             linksArray = JSON.parse(jsonInput.value);
             if (!Array.isArray(linksArray)) {
@@ -20,11 +21,11 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // 2. Show a loading message
+        // loading message
         resultsBox.innerHTML = `<p>Checking ${linksArray.length} links... This may take a moment.</p><div class="loader"></div>`;
         checkButton.disabled = true;
 
-        // 3. Send the data to our server
+        // send data to server
         try {
             const response = await fetch('/check-links', {
                 method: 'POST',
@@ -41,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const report = await response.json();
             const fullJsonOutput = JSON.stringify(report.results, null, 2);
 
-            // 4. Count the results
+            // count the results
             let found = 0;
             let notFound = 0;
             let timeout = 0;
@@ -54,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 else error++;
             });
 
-            // 5. Display the Summary and Detail elements
+            // display the results summary
             resultsBox.innerHTML = `
                 <h3>Check Complete!</h3>
                 <div class="stats-summary">
@@ -72,17 +73,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 <pre id="full-report" style="display: none;">${fullJsonOutput}</pre>
             `;
             
-            // 6. Add event listeners for the new buttons
+            // event listeners for the new buttons
             const toggleButton = document.getElementById('toggle-details');
             const fullReport = document.getElementById('full-report');
             const downloadButton = document.getElementById('download-report');
             
+            // option to see report
             toggleButton.addEventListener('click', () => {
                 const isHidden = fullReport.style.display === 'none';
                 fullReport.style.display = isHidden ? 'block' : 'none';
                 toggleButton.textContent = isHidden ? 'Hide Full Report' : 'Show Full Report';
             });
             
+            // option to download the full report
             downloadButton.addEventListener('click', () => {
                 const blob = new Blob([fullJsonOutput], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
@@ -95,9 +98,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 URL.revokeObjectURL(url);
             });
 
-        } catch (err) {
+        } 
+        // something went wrong
+        catch (err) {
             resultsBox.innerHTML = `<p style="color: red;"><strong>Error:</strong> ${err.message}</p>`;
-        } finally {
+        } 
+        // done
+        finally {
             checkButton.disabled = false;
         }
     });

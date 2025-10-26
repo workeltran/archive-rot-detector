@@ -4,23 +4,23 @@ const axios = require('axios');
 const fs = require('fs');
 const path = require('path'); 
 
-// --- STEALTH REQUIREMENTS ---
+// stealth
 const puppeteer = require('puppeteer-extra');
 const stealth = require('puppeteer-extra-plugin-stealth');
 puppeteer.use(stealth());
-// ------------------------------
 
+// port setup
 const app = express();
 const PORT = 8000; 
 
+// express middleware
 app.use(cors());
 app.use(express.json()); 
-
 app.use(express.static(path.join(__dirname, '../public')));
 
 const BATCH_SIZE = 5; 
 
-// --- Link Type Classification ---
+// classify link type
 function getLinkType(url) {
   if (url.includes('youtube.com/playlist') || url.includes('youtube.com/playlist')) {
     return 'YouTube Playlist';
@@ -37,7 +37,7 @@ function getLinkType(url) {
   return 'Generic';
 }
 
-// --- Core Link Checking Logic ---
+// checks links
 async function checkLink(link, browser) {
   const type = getLinkType(link.url);
   const result = { id: link.id, url: link.url, type: type, status: 'PENDING' };
@@ -57,7 +57,7 @@ async function checkLink(link, browser) {
       try {
         response = await page.goto(link.url, { waitUntil: 'networkidle2', timeout: 30000 });
       } catch (pageError) {
-         // Ignore navigation errors here, rely on later checks
+        throw pageError;
       }
 
       // Hard 404 Check
@@ -65,28 +65,29 @@ async function checkLink(link, browser) {
         throw new Error('HARD_404'); 
       }
 
+      // get the page content
       const pageTitle = (await page.title()).toLowerCase();
       const bodyHTML = (await page.evaluate(() => document.body.innerHTML)).toLowerCase();
       
       let isNotFound = false;
 
-      // Twitch Check (Title-based for reliability)
+      // check Twitch links
       if (type === 'Twitch VOD/Highlight') {
         if (pageTitle === 'twitch') isNotFound = true;
       
-      } // YOUTUBE VIDEO CHECKS (FINAL, AGGRESSIVE STRING CHECK)
+      } // check YouTube links
        else if (type === 'YouTube Video') {
         // This is the ultimate list of strings we know exist for dead content
-        isNotFound = (pageTitle === 'youtube') || // <-- ADD THIS LINE
-                       bodyHTML.includes("video unavailable") || // Generic unavailability
-                       bodyHTML.includes("this video isn't available anymore") || // Deletion
-                       bodyHTML.includes("this video is private") || // Privacy
-                       bodyHTML.includes("this video is unavailable in your country") || // Geoblock
-                       bodyHTML.includes("who has blocked it on copyright grounds") || // Copyright block
-                       bodyHTML.includes("has been removed by the user") || // User removal
-                       bodyHTML.includes("account associated with this video has been terminated"); // Channel termination
-      
-      // YouTube Playlist Checks
+        isNotFound = (pageTitle === 'youtube') || // generic 404
+                       bodyHTML.includes("video unavailable") || // generic unavailability
+                       bodyHTML.includes("this video isn't available anymore") || // deletion
+                       bodyHTML.includes("this video is private") || // privacy
+                       bodyHTML.includes("this video is unavailable in your country") || // rregional block
+                       bodyHTML.includes("who has blocked it on copyright grounds") || // copyright block
+                       bodyHTML.includes("has been removed by the user") || // user removal
+                       bodyHTML.includes("account associated with this video has been terminated"); // channel termination
+
+      // YouTube playlist Checks
       } else if (type === 'YouTube Playlist') {
         if (pageTitle === 'youtube') {
           isNotFound = true;
@@ -95,7 +96,7 @@ async function checkLink(link, browser) {
                          bodyHTML.includes("this playlist is unavailable");
         }
       
-      // Internet Archive Check
+      // Internet Archive check
       } else if (type === 'Internet Archive') {
         isNotFound = bodyHTML.includes("this item is not available") ||
                        bodyHTML.includes("the page you are looking for cannot be found");
@@ -104,20 +105,27 @@ async function checkLink(link, browser) {
       result.status = isNotFound ? 'NOT_FOUND' : 'FOUND';
 
     } else {
-      // Simple Generic Check (using fast axios.head)
+      // generic check
       await axios.head(link.url, { timeout: 5000 });
       result.status = 'FOUND';
     }
 
   } catch (error) {
+    // can't find the link
     if (error.message === 'HARD_404' || (error.response && (error.response.status === 404 || error.response.status === 410))) {
       result.status = 'NOT_FOUND';
-    } else if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+    } 
+    // timeout or network error
+    else if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
       result.status = 'TIMEOUT'; 
-    } else {
+    } 
+    // unexpected errors
+    else {
       result.status = 'ERROR';
     }
-  } finally {
+  } 
+  // ensure page is closed
+  finally {
     if (page) {
       await page.close(); 
     }
@@ -126,7 +134,7 @@ async function checkLink(link, browser) {
   return result;
 }
 
-// --- THE MAIN API ENDPOINT (POST) ---
+//  main API endpoint
 app.post('/check-links', async (req, res) => {
   console.log('Received POST request to /check-links');
 
@@ -138,7 +146,7 @@ app.post('/check-links', async (req, res) => {
   console.log(`Loaded ${linksToTest.length} links from request body`);
   const allResults = [];
 
-  // BATCHING LOOP: LAUNCHES AND CLOSES BROWSER FOR EACH BATCH (RAM FIX)
+  // launches and closes browser for fixed size batches to reduce memory leaks
   for (let i = 0; i < linksToTest.length; i += BATCH_SIZE) {
     let browser; 
     try {
@@ -165,12 +173,13 @@ app.post('/check-links', async (req, res) => {
     }
   }
 
+  // report done
   console.log('Link checking complete. Sending final report.');
   allResults.sort((a, b) => a.id.localeCompare(b.id));
   res.json({ results: allResults });
 });
 
-// --- Server Startup ---
+// start server
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
