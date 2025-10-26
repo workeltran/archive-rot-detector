@@ -9,14 +9,14 @@ This project was built to overcome complex web scraping and system resource limi
 ## Getting Started (Run the Demo)
 To run the functional frontend demonstration, you will first need to set up the dependencies and start the server.
 
-* **Prerequisites:** you must have Node.js installed on your system. This also installs npm (Node Package Manager).
-* **Clone the Repository:** clone the project and change into the directory using the following commands:
-** ```git clone https://github.com/your-username/your-repo-name.git```
--- cd your-repo-name
+- **Prerequisites:** you must have Node.js installed on your system. This also installs npm (Node Package Manager).
+- **Clone the Repository:** clone the project and change into the directory using the following commands:
+- ```git clone https://github.com/your-username/your-repo-name.git```
+  - cd your-repo-name
 - **Install Dependencies:** run npm install to download all necessary packages, including Express, Axios, and Puppeteer. (This may take a minute as it also downloads a local copy of Chromium for Puppeteer.)
--- npm install
+  - npm install
 - **Run the Server:** Start the API server on the final, configured port by running node src/server.js. The server will run on http://localhost:8000. (I chose port 8000 bc my usual 8080 port is already taken by a different app.)
--- node src/server.js
+  - node src/server.js
 - **Use the Frontend:** Open your browser to http://localhost:8000. You can then copy the JSON array from the test-early-diverse-sample.json file in the project folder, paste the list into the text area, and click "Check Links" to see a live, accurate report.
 
 # What's Next
