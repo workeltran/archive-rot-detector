@@ -6,7 +6,7 @@ Digital archives are constantly threatened by link rot, the gradual removal of e
 ## Key Technical Features
 This project was built to overcome complex web scraping and system resource limitations. The core technical value lies in its method for identifying ```soft 404s```. The system uses a Stealth Mode setup with Puppeteer-Extra-Plugin-Stealth to bypass bot detection by Twitch and YouTube, ensuring stable navigation and preventing the API from being blocked. The most crucial component is the ```soft 404``` Detection logic, which analyzes the rendered page's title for error strings like "unavailable" or "twitch" (for expired VODs), accurately confirming the link's status. To ensure stability, the API is structured with a Launch/Close Browser Per Batch logic. This solves the critical memory crash problem by only launching the heavy headless browser for a small batch of links and immediately closing it afterward, making the API gentle on system resources.
 
-## Getting Started (Run the Demo)
+## How to Run the Demo
 To run the functional frontend demonstration, you will first need to set up the dependencies and start the server.
 
 - **Prerequisites:** you must have Node.js installed on your system. This also installs npm (Node Package Manager).
