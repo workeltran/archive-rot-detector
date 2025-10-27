@@ -1,10 +1,2 @@
 # Node.js dependencies
-node_modules/
-/public/report-file.json
-
-# Local environment variables
-.env
-
-# Ignore ALL contents of the data folder
-data/
-
+node_modules
