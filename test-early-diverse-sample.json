@@ -1,0 +1,42 @@
+[
+  {
+    "id": "test_twitch_expired_1",
+    "url": "https://www.twitch.tv/videos/2162524538"
+  },
+  {
+    "id": "test_twitch_good_1",
+    "url": "https://www.twitch.tv/videos/1686611838"
+  },
+  {
+    "id": "test_youtube_good_video_1",
+    "url": "https://www.youtube.com/watch?v=eXVzB9JAfp4"
+  },
+  {
+    "id": "test_youtube_good_playlist_1",
+    "url": "https://www.youtube.com/playlist?list=PLXKAG8g1Ls_Ax-SU7rCgyiGWjylB5NHL-"
+  },
+  {
+    "id": "test_youtube_404_video_1",
+    "url": "https://www.youtube.com/watch?v=nonexistentvid"
+  },
+  {
+    "id": "test_youtube_404_video_2",
+    "url": "https://www.youtube.com/watch?v=tAT_yxG0KsE"
+  },
+  {
+    "id": "test_youtube_404_playlist_1",
+    "url": "https://www.youtube.com/playlist?list=PLyZl4m98J4YIQCieBS9y9o79ZOEPwXUYm"
+  },
+  {
+    "id": "test_ia_good_1",
+    "url": "https://archive.org/details/driving-gem-mad"
+  },
+  {
+    "id": "test_ia_404_1",
+    "url": "https://archive.org/details/thispagedoesnotexist123abc"
+  },
+  {
+    "id": "test_generic_good_1",
+    "url": "https://www.google.com"
+  }
+]
